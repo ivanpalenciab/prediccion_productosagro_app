@@ -1,3 +1,6 @@
 __init__.py
 *.joblib
 *.csv
+__pycache__/
+*.py[cod]
+*$py.class
