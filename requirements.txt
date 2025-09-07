@@ -6,3 +6,5 @@ fastapi
 uvicorn
 joblib
 xgboost
+dash
+dash_mantine_components==2.0.0

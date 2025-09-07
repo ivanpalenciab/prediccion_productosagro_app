@@ -101,6 +101,8 @@ def predictor(numero_semanas,modelo_1,modelo_2,modelo_residuo,dia_predicho):
         modo_1_escalado.loc[dia_predicho] = prediccion_modo_1_escalado[0]
         modo_2_escalado.loc[dia_predicho] = prediccion_modo_2_escalado[0]
         residuo_escalado.loc[dia_predicho] = prediccion_residuo_escalado[0]
-    
-   return float(prediccion[0,0])
+    print(f"lo que en realidad retorna es {str(prediccion[0,0])}")
+    print(f"La verdadera fecha predicha es {dia_predicho}")
+
+   return float(prediccion[0,0]), dia_predicho
    

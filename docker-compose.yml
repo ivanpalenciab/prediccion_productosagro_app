@@ -1,13 +1,11 @@
-version: "3.9"
-
 services:
   app:
     build: .
     container_name: prediccion_agro
     ports:
-      - "8050:8000"   
+      - "8050:8050"   
     volumes:
       - .:/app        
     environment:
       - PYTHONUNBUFFERED=1
-    command: uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload
+    command: python src/app.py
