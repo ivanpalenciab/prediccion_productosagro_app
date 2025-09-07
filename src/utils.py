@@ -72,6 +72,11 @@ escalador_residuo,residuo_escalado =escalador(residuo_actualizado)
 #Función para predecir n semanas 
 def predictor(numero_semanas,modelo_1,modelo_2,modelo_residuo,dia_predicho):
    """Esta funcion permite predecir n semanas, la funcion recibe el numero de semanas y cada uno de los modelos"""
+
+   #Vamos a almacenar los datos de predicciones
+   datos_predicciones = []
+   fechas_predicciones = []
+
    semanas_predichas=0
    for i in range(1,numero_semanas+1):
     input_modo_1 = vector_7_semanas_anteriores(modo_1_escalado,dia_predicho + pd.Timedelta(weeks=1))
@@ -93,16 +98,22 @@ def predictor(numero_semanas,modelo_1,modelo_2,modelo_residuo,dia_predicho):
     prediccion[0,0]
     dia_predicho = dia_predicho + pd.Timedelta(weeks=1)
     semanas_predichas = i
-    print(f"fecha predicha {dia_predicho}")
-    print(str(prediccion[0,0]))
-    print(f"Se predijeron {semanas_predichas} semanas")
+    #print(f"fecha predicha {dia_predicho}")
+    #print(str(prediccion[0,0]))
+    #print(f"Se predijeron {semanas_predichas} semanas")
+
+    datos_predicciones.append(prediccion[0,0]) 
+    fechas_predicciones.append(dia_predicho)
 
     if semanas_predichas < numero_semanas:
         modo_1_escalado.loc[dia_predicho] = prediccion_modo_1_escalado[0]
         modo_2_escalado.loc[dia_predicho] = prediccion_modo_2_escalado[0]
         residuo_escalado.loc[dia_predicho] = prediccion_residuo_escalado[0]
-    print(f"lo que en realidad retorna es {str(prediccion[0,0])}")
-    print(f"La verdadera fecha predicha es {dia_predicho}")
 
-   return float(prediccion[0,0]), dia_predicho
+    #print(f"lo que en realidad retorna es {str(prediccion[0,0])}")
+    #print(f"La verdadera fecha predicha es {dia_predicho}")
+    predicciones_hechas = pd.DataFrame({"Fecha":fechas_predicciones,"Precio":datos_predicciones})
+    #predicciones_hechas.info()
+
+   return float(prediccion[0,0]), dia_predicho, predicciones_hechas
    
