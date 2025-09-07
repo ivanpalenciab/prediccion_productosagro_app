@@ -1,6 +1,4 @@
-from fastapi import FastAPI
 from dash import Dash, html, dcc, callback, Output, Input
-from starlette.middleware.wsgi import WSGIMiddleware
 import dash
 import dash_mantine_components as dmc
 import plotly.express as px
@@ -14,18 +12,8 @@ precios = modo_1_actualizado + modo_2_actualizado + residuo_actualizado
 
 fig = px.line(precios, x=precios.index, y="PROMEDIO", title="Precios del maíz granabastos")
 
-#from src.routes.predecir import predecir
-
 app = Dash(__name__, suppress_callback_exceptions=True,use_pages=True)
 server = app.server 
-#app.include_router(predecir)
-#@app.get("/")
-#def read_root():
-#    return {"Hello": "World"}
-#style = {
-#    "border": f"1px solid var(--mantine-primary-color-filled)",
- #   "textAlign": "center",
-#}
 
 # Dash frontend
 numero_semanas = ["4 semanas","8 semanas","12 semanas","16 semanas","24 semanas"]
@@ -50,7 +38,7 @@ app.layout = dmc.MantineProvider(
                 dmc.Text("¿Cuántas semanas quieres predecir?", size="sm", fw=500),
                 dcc.Dropdown(numero_semanas,"Seleccione el numero de semanas",id="seleccion-semanas")
                 ],span=4,
-                style={"marginTop": "100px"}
+                #style={"marginTop": "100px"}
             ),
                   dcc.Location(id="url", refresh=True),
                  dash.page_container
@@ -68,6 +56,3 @@ def ir_a_prediccion(valor):
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8050, debug=True)
-
-# Montar Dash dentro de FastAPI
-#app.mount("/", WSGIMiddleware(app.server))

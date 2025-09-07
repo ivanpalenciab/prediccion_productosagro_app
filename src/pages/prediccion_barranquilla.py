@@ -4,8 +4,13 @@ from urllib.parse import parse_qs, urlparse
 from joblib import load
 import pandas as pd
 import dash_mantine_components as dmc
+from urllib.parse import urlparse, parse_qs
+import plotly.express as px
 
 from utils import predictor
+from utils import modo_1_actualizado
+from utils import modo_2_actualizado
+from utils import residuo_actualizado
 
 #preparamos la predicción
 modelo_LGBM_M1 = load("modelo_reentrenado/LGBM/LGBM_m1.joblib")
@@ -22,14 +27,20 @@ fecha_predecir = pd.to_datetime(fecha_predecir,format='%d/%m/%Y')
 dia_inicio = pd.to_datetime(dia_inicio,format='%d/%m/%Y')
 dia_predicho = dia_inicio 
 
+precios = modo_1_actualizado + modo_2_actualizado + residuo_actualizado
+precios.rename(columns={"PROMEDIO":"Precio"},inplace=True)
+
+print(precios.info())
+
+
 def prediccion(numero_semanas):
-    prediccion_LGBM,fecha1 = predictor(numero_semanas=numero_semanas,
+    prediccion_LGBM,fecha1, predicciones_hechas_LGB = predictor(numero_semanas=numero_semanas,
                                 modelo_1=modelo_LGBM_M1,
                                 modelo_2=modelo_LGBM_M2,
                                 modelo_residuo=modelo_LGBM_residuo, 
                                 dia_predicho=dia_predicho)
     
-    prediccion_XGboost,fecha2= predictor(numero_semanas=numero_semanas,
+    prediccion_XGboost,fecha2, predicciones_hechas_XGboost= predictor(numero_semanas=numero_semanas,
                                    modelo_1=modelo_XGboost_M1,
                                    modelo_2=modelo_XGboost_M2,
                                    modelo_residuo=modelo_XGboost_residuo,
@@ -38,15 +49,15 @@ def prediccion(numero_semanas):
     prediccion_final = (0.84493549*prediccion_XGboost +
                 0.15506451*prediccion_LGBM
                 )
-    return round(prediccion_final,2), fecha1
+    
+    predicciones_hechas_PSOCS = predicciones_hechas_XGboost["Precio"]*0.84493549 + predicciones_hechas_LGB["Precio"]* 0.15506451
+
+    predicciones_ensemble = pd.DataFrame({"fecha":predicciones_hechas_LGB.Fecha,"Precio":predicciones_hechas_PSOCS})
+    predicciones_ensemble.info()
+    return round(prediccion_final,2), fecha1, predicciones_ensemble
 
 #dash.register_page(__name__, path="/prediccion-barranquilla", name="prediccion")
 numero_semanas = {"4 semanas":4 ,"8 semanas":8, "12 semanas":12 ,"16 semanas": 16 ,"24 semanas":24}
-
-import dash
-from dash import html, Input, Output
-from dash import dcc
-from urllib.parse import urlparse, parse_qs
 
 dash.register_page(__name__, path="/prediccion")
 
@@ -66,22 +77,49 @@ def mostrar_prediccion(href):
     query = parse_qs(urlparse(href).query)
     semanas = query.get("semanas", ["?"])[0]
     
-    # 🔽 Aquí puedes correr tu lógica de predicción real
-    valor_predicho, fecha_predicha = prediccion(numero_semanas=numero_semanas[semanas])
+    
+    valor_predicho, fecha_predicha, datos_predicciones = prediccion(numero_semanas=numero_semanas[semanas])
     print(valor_predicho)
+
     dia_predicho = fecha_predicha.day
     mes_predicho = fecha_predicha.month_name(locale="es_ES.utf8")
     año_predicho = fecha_predicha.year
+
+    #Graficamos
+    fig = px.line(precios, x=precios.index, y="Precio", title="Precios del maíz granabastos")
+    fig.add_scatter(x=datos_predicciones["fecha"], y=datos_predicciones["Precio"],
+                mode="lines", name="Predicción")
+
     return html.Div([
-        html.P(f"se predijeron  {numero_semanas[semanas]} semanas"),
-        dmc.Stack(
-            children=[ 
-                html.H1("Fecha"),
-                dmc.Box(f"{dia_predicho} de {mes_predicho} de {año_predicho}"),
-                html.H1("Valor predicho"),
-                dmc.Box([
-                valor_predicho
+    html.P(f"se predijeron {numero_semanas[semanas]} semanas"),
+    dmc.Grid(
+        children=[
+            dmc.GridCol(
+                children=[
+                    dmc.Stack(
+                        children=[ 
+                            html.H1("Fecha"),
+                            dmc.Button(f"{dia_predicho} de {mes_predicho} de {año_predicho}"),
+                            html.H1("Precio"),
+                            dmc.Button(valor_predicho),
+                        ],
+                    )
                 ],
-                mt=8, p=24)],
-        )
-    ])
+                span=4,
+                #style={"marginTop": "100px"}
+            ), 
+            dmc.GridCol(
+                children=[
+                    dcc.Graph(
+                        id="precios-mas-prediccion",
+                        figure=fig,
+                        #style={"width": "100%", "height": "500px"}
+                    )
+                ],
+                span=8
+            ),
+            
+        ],
+        grow=True     
+    )
+])
