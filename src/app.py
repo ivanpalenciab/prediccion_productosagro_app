@@ -48,7 +48,7 @@ app.layout = dmc.MantineProvider(
             dmc.GridCol(
                 children=[
                 dmc.Text("¿Cuántas semanas quieres predecir?", size="sm", fw=500),
-                dcc.Dropdown(numero_semanas,"4 semanas",id="seleccion-semanas")
+                dcc.Dropdown(numero_semanas,"Seleccione el numero de semanas",id="seleccion-semanas")
                 ],span=4,
                 style={"marginTop": "100px"}
             ),
