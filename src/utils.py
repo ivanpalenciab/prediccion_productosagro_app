@@ -1,5 +1,6 @@
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
+from joblib import load
 
 dia_inicio = "13/08/2025" #esta es la ultima fecha donde tengo datos
 fecha_predecir = "19/08/2025" #dia de referencia de la semana que quiero predecir
@@ -24,6 +25,15 @@ modos = [modo_1_actualizado,modo_2_actualizado,residuo_actualizado]
 for i in modos:
   i["FECHA"] = pd.to_datetime(i["FECHA"],format='%Y-%m-%d')
   i.set_index("FECHA", inplace=True)
+
+#importamos los modelos 
+modelo_LGBM_M1 = load("modelo_reentrenado/LGBM/LGBM_m1.joblib")
+modelo_LGBM_M2 = load("modelo_reentrenado/LGBM/LGBM_m2.joblib")
+modelo_LGBM_residuo = load("modelo_reentrenado/LGBM/LGBM_residuo.joblib")
+
+modelo_XGboost_M1 = load("modelo_reentrenado/XG_boost/XG_boost_m1.joblib")
+modelo_XGboost_M2 = load("modelo_reentrenado/XG_boost/XG_boost_m2.joblib")
+modelo_XGboost_residuo = load("modelo_reentrenado/XG_boost/XG_boost_residuo.joblib")
 
 
 #Funcion para hallar los datos de las 7 semanas anteriores
@@ -116,4 +126,29 @@ def predictor(numero_semanas,modelo_1,modelo_2,modelo_residuo,dia_predicho):
     #predicciones_hechas.info()
 
    return float(prediccion[0,0]), dia_predicho, predicciones_hechas
+
+
+# definimos la funcion predictora
+def prediccion(numero_semanas):
+    prediccion_LGBM,fecha1, predicciones_hechas_LGB = predictor(numero_semanas=numero_semanas,
+                                modelo_1=modelo_LGBM_M1,
+                                modelo_2=modelo_LGBM_M2,
+                                modelo_residuo=modelo_LGBM_residuo, 
+                                dia_predicho=dia_predicho)
+    
+    prediccion_XGboost,fecha2, predicciones_hechas_XGboost= predictor(numero_semanas=numero_semanas,
+                                   modelo_1=modelo_XGboost_M1,
+                                   modelo_2=modelo_XGboost_M2,
+                                   modelo_residuo=modelo_XGboost_residuo,
+                                   dia_predicho=dia_predicho)
+    #usamos parametros hallados en el modelado con el ensemble a traves de PSO-CS
+    prediccion_final = (0.84493549*prediccion_XGboost +
+                0.15506451*prediccion_LGBM
+                )
+    
+    predicciones_hechas_PSOCS = predicciones_hechas_XGboost["Precio"]*0.84493549 + predicciones_hechas_LGB["Precio"]* 0.15506451
+
+    predicciones_ensemble = pd.DataFrame({"fecha":predicciones_hechas_LGB.Fecha,"Precio":predicciones_hechas_PSOCS})
+    predicciones_ensemble.info()
+    return round(prediccion_final,2), fecha1, predicciones_ensemble
    
