@@ -28,10 +28,10 @@ modelo_XGboost_residuo = load("modelo_reentrenado/XG_boost/XG_boost_residuo.jobl
 precios = modo_1_actualizado + modo_2_actualizado + residuo_actualizado
 precios.rename(columns={"PROMEDIO":"Precio"},inplace=True)
 
-decodificador = {"4 semanas":4 ,"8 semanas":8, "12 semanas":12 ,"16 semanas": 16 ,"24 semanas":24}
+decodificador = {"1 semana": 1,"4 semanas":4 ,"8 semanas":8, "12 semanas":12 ,"16 semanas": 16 ,"24 semanas":24}
 
 fig = px.line(precios, x=precios.index, y="Precio", title="Precios del maíz granabastos")
-numero_semanas = ["4 semanas","8 semanas","12 semanas","16 semanas","24 semanas"]
+numero_semanas = ["1 semana","4 semanas","8 semanas","12 semanas","16 semanas","24 semanas"]
 
 layout = dmc.MantineProvider(
 
@@ -51,7 +51,7 @@ layout = dmc.MantineProvider(
             dmc.GridCol(
                 children=[
                 dmc.Text("¿Cuántas semanas quieres predecir?", size="sm", fw=500),
-                dcc.Dropdown(numero_semanas,"Seleccione el numero de semanas",id="seleccion-semanas"),
+                dcc.Dropdown(numero_semanas,"",id="seleccion-semanas"),
                 html.Div(id="resultado-prediccion")
                 ],span=4,
                 #style={"marginTop": "100px"}
