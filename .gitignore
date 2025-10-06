@@ -1,5 +1,4 @@
 __init__.py
-*.joblib
 __pycache__/
 *.py[cod]
 *$py.class
