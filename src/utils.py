@@ -2,8 +2,8 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from joblib import load
 
-dia_inicio = "13/08/2025" #esta es la ultima fecha donde tengo datos
-fecha_predecir = "19/08/2025" #dia de referencia de la semana que quiero predecir
+dia_inicio = "10/12/2025" #esta es la ultima fecha donde tengo datos
+fecha_predecir = "17/12/2025" #dia de referencia de la semana que quiero predecir
 fecha_predecir = pd.to_datetime(fecha_predecir,format='%d/%m/%Y')
 dia_inicio = pd.to_datetime(dia_inicio,format='%d/%m/%Y')
 dia_predicho = dia_inicio
